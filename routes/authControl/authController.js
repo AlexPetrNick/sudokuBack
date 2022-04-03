@@ -14,7 +14,7 @@ export const login = async (req, res) => {
 }
 export const getUsers = async (req, res) => {
     try {
-        let a = 'server work'
+        let a = 'server worka'
         let b = ' asdfasdf'
         res.json(a)
     } catch (e) {
