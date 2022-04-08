@@ -1,3 +1,13 @@
 export const conf = {
-    secret: "SECRET_KEY_RANDOM"
+    secret: "SECRET_KEY_RANDOM",
+    token: {
+        accessToken: {
+            typeToken: 'access',
+            live: '10m'
+        },
+        refreshToken: {
+            typeToken: 'refresh',
+            live: '24h'
+        }
+    }
 }

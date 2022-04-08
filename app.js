@@ -3,10 +3,12 @@ import path, {dirname} from 'path'
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import cors from 'cors'
 
 import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
 import routerAuth from "./routes/authControl/authRouter.js";
+import menuRouter from "./routes/menuControl/menuRouter.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,8 +25,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+const corsOptions = {
+    origin: 'http://localhost:4000',
+    credentials: true,
+    optionsSuccessStatus: 200
+}
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', routerAuth)
+app.use('/menu', menuRouter)
+
 
 export default app
