@@ -3,7 +3,7 @@ export const conf = {
     token: {
         accessToken: {
             typeToken: 'access',
-            live: '10m'
+            live: '300h'
         },
         refreshToken: {
             typeToken: 'refresh',

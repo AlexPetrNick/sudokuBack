@@ -6,7 +6,6 @@ const MetaModel = new Schema({
     updateUserId: { type: Schema.Types.ObjectId, ref:'User' },
     updateDate: { type: Date },
     deleteDate: { type: Date },
-    createDate: { type: Date },
 
 })
 

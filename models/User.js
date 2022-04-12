@@ -12,4 +12,4 @@ const User = new Schema({
 
 })
 
-export default model('User', User)
+export default model('users', User)

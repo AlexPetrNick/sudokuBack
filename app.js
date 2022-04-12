@@ -9,6 +9,7 @@ import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
 import routerAuth from "./routes/authControl/authRouter.js";
 import menuRouter from "./routes/menuControl/menuRouter.js";
+import dialogRouter from "./routes/dialogControl/dialogRouter.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,10 +35,11 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', indexRouter)
+app.use('/users', usersRouter)
 app.use('/auth', routerAuth)
 app.use('/menu', menuRouter)
+app.use('/dialog', dialogRouter)
 
 
 export default app

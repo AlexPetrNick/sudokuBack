@@ -9,7 +9,8 @@ const UserTextMessageModel = new Schema({
     prevText: { type: String, default: '' },
     cntLike: { type: Number, default: 0 },
     cntWatch: { type: Number, default: 0 },
-    whoRead: {type: [Schema.Types.ObjectId], ref: 'User'}
+    whoRead: {type: [Schema.Types.ObjectId], ref: 'User'},
+    createDate: { type: Date },
 })
 
 export default model("UserTextMessage", UserTextMessageModel)
