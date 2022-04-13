@@ -6,34 +6,51 @@ import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 
 export const getListGroup = async (req, res) => {
     try {
-        const query = req.query
         const {userId, ...dataToken} = getDataAccessToken(req.headers.authorization.split(' ')[1])
-
         const usersId = await TalkingGroupModel.find({usersId: userId})
-            .select({'usersId':1, '_id':1})
-        const idTalking = usersId.map(us => us._id.toString())
-
+            .select({'usersId': 1, '_id': 1})
         const menuIdUser = usersId.map(us => {
-            return us.usersId.filter(id => id.toString() !== userId)[0]
-        })
-
-        const listUser = await User.find({_id:{$in:menuIdUser.map(id => id.toString())}})
-        const a = idTalking.map((id) => {
+            console.log(us)
             return {
-                create: UserTextMessageModel.find({talkingGroupId: id})
+                friendId: us.usersId.filter(id => id.toString() !== userId)[0].toString(),
+                talkingId: us._id.toString()
             }
         })
-        console.log(a)
-
-        const userInGroup = listUser.map(user => {
-            return {
-                username: user.username,
-                email: user.email ? user.email : null,
-                firstName: user.firstName ? user.firstName : null,
-                lastName: user.lastName ? user.lastName : null,
-            }
+        const friendIds = menuIdUser.map(us => us.friendId)
+        const talkIds = menuIdUser.map(us => us.talkingId)
+        const dataMessagesProm = new Promise((res, rej) => {
+            res(UserTextMessageModel.find({talkingGroupId: {$in: talkIds}}))
         })
-        res.json({userInGroup})
+        const dataUsersProm = new Promise((res, rej) => {
+            res(User.find({_id: {$in: friendIds}}))
+        })
+        Promise.all([dataMessagesProm, dataUsersProm])
+            .then(data => {
+                const messData = data[0]
+                const userData = data[1]
+
+                const dataGroup = menuIdUser.map(data => {
+                    const friend = userData.filter(us => us._id.toString() === data.friendId)
+                    const filtFriend = friend.map(us => {
+                        return {
+                            username: us.username,
+                            email: us.email ? us.email : null,
+                            firstName: us.firstName ? us.firstName : null,
+                            lastName: us.lastName ? us.lastName : null,
+                        }
+                    })
+
+                    const talkRaw = messData.filter(ms => ms.talkingGroupId.toString() === data.talkingId)
+                    const talk = talkRaw.slice(-1)
+                    return {
+                        friend: filtFriend[0],
+                        talking: talk[0]
+                    }
+                })
+
+                res.json({dataGroup})
+            })
+
     } catch (e) {
 
     }
@@ -44,13 +61,13 @@ export const getListUser = async (req, res) => {
         const query = req.query
         const {userId, ...dataToken} = getDataAccessToken(req.headers.authorization.split(' ')[1])
         const usersId = await TalkingGroupModel.find({usersId: userId})
-            .select({'usersId':1})
+            .select({'usersId': 1})
         const menuIdUser = usersId.map(us => {
             return us.usersId.filter(id => id.toString() !== userId)[0]
         })
         const idNotInTalking = menuIdUser.map(id => id.toString())
         idNotInTalking.push(userId)
-        const listUserNotInTalking = await User.find({_id:{$nin:idNotInTalking}})
+        const listUserNotInTalking = await User.find({_id: {$nin: idNotInTalking}})
 
         const result = listUserNotInTalking.map(u => {
             const username = u.username

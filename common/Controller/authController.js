@@ -6,6 +6,7 @@ import {generateAccessToken, generateRefeshToken, getDataAccessToken} from "../a
 import jwt from "jsonwebtoken";
 import {conf} from "../../config/config.js";
 import Token from "../../models/Token.js";
+import TalkingGroupModel from "../../models/TalkingGroupModel.js";
 
 
 export const registration = async (req, res) => {
@@ -41,7 +42,6 @@ export const login = async (req, res) => {
     try {
         const {username, password} = req.body
         const user = await User.findOne({username})
-        const users = await User.f
         if (!user) {
             return res.status(400).json({message: `Пользователь ${username} не найден`})
         }
@@ -53,10 +53,16 @@ export const login = async (req, res) => {
         if (token) {
             await Token.deleteOne({user: user._id})
         }
-        const accessToken = generateAccessToken(user._id, user.roles)
-        const refreshToken = generateRefeshToken(user._id)
-        const usernameDb = user.username
-        return res.json({accessToken, refreshToken, username:usernameDb})
+        const usersId = await TalkingGroupModel.find({usersId: user._id})
+            .then(data => {
+                const accessToken = generateAccessToken(user._id, user.roles)
+                const refreshToken = generateRefeshToken(user._id)
+                const usernameDb = user.username
+                const userIdDb = user._id
+                const nameRooms = data.map(talk => talk.name)
+                res.json({accessToken, refreshToken, username:usernameDb, id:userIdDb, nameRooms})
+            })
+
     } catch (e) {
         console.log(e)
         res.status(400).json({message: 'Login error'})

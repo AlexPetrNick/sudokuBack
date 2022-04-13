@@ -4,6 +4,7 @@ import debug, {log} from 'debug'
 import http from 'http'
 import mongoose from 'mongoose'
 import {Server} from 'socket.io'
+import {messageHandler} from "../socket/messageHandler.js";
 
 
 let normalizePort = (val) => {
@@ -62,14 +63,29 @@ const startApp = async () => {
         server.on('error', onError);
         server.on('listening', onListening);
 
-        io.on('connection', function (socket) {
-            console.log('A user connected');
-            client++
-        })
-        io.on('disconnect', function () {
-            client--
-            console.log('user disconnected');
-        });
+        const handleConnect = (socket) => {
+            console.log('A user connected')
+            const {roomId, id} = socket.handshake.query
+
+
+            socket.roomsId = roomId
+            socket.id = id
+            const rooms = roomId.split(',')
+            rooms.forEach(room => {
+                socket.join(room)
+                console.log(`Connect to room ${room}`)
+            })
+
+            messageHandler(io, socket)
+
+
+            socket.on('disconnect', function () {
+                console.log('user disconnected');
+            });
+        }
+
+        io.on('connection', handleConnect)
+
 
     } catch (e) {
         console.log(e)
