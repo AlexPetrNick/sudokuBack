@@ -29,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const corsOptions = {
     origin: 'http://localhost:4000',
+    // origin: '*',
     credentials: true,
     optionsSuccessStatus: 200
 }

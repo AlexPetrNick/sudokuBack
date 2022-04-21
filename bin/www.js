@@ -53,7 +53,7 @@ const io = new Server(server, {
         credentials: true,
 
     },
-    transport: ['polling']
+    transport: ['websocket']
 });
 
 const startApp = async () => {
@@ -65,19 +65,13 @@ const startApp = async () => {
 
         const handleConnect = (socket) => {
             console.log('A user connected')
-            const {roomId, id} = socket.handshake.query
-
-
-            socket.roomsId = roomId
-            socket.id = id
-            const rooms = roomId.split(',')
-            rooms.forEach(room => {
-                socket.join(room)
-                console.log(`Connect to room ${room}`)
-            })
 
             messageHandler(io, socket)
 
+            socket.on('joinRoom', (room) => {
+                socket.join(room)
+                socket.to(room).emit('hi:user', room)
+            })
 
             socket.on('disconnect', function () {
                 console.log('user disconnected');

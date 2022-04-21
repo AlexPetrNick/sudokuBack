@@ -3,10 +3,8 @@ import User from "../../models/User.js";
 import {getDataAccessToken} from "../added/workerToken.js";
 import metaModel from "../../models/MetaModel.js";
 import UserTextMessageModel from "../../models/UserTextMessageModel.js";
-import {body} from "express-validator";
-import {v4} from "uuid";
 import userTextMessageModel from "../../models/UserTextMessageModel.js";
-import {log} from "debug";
+import {v4} from "uuid";
 
 
 export const getDialogInfo = async (req, res) => {
@@ -45,7 +43,7 @@ export const sendMessage = async (req, res) => {
 
         const talkingGroup = await TalkingGroupModel.findOne({$and: [{usersId: messageToUser._id}, {usersId: userId}]})
         if (talkingGroup) {
-            const newMetaMess = await metaModel.insertMany([
+            await metaModel.insertMany([
                 {
                     deleteUserId: null,
                     updateUserId: null,
@@ -69,7 +67,7 @@ export const sendMessage = async (req, res) => {
 
         } else {
             const name_def = v4()
-            const newMeta = await metaModel.insertMany([
+            await metaModel.insertMany([
                 {
                     deleteUserId: null,
                     updateUserId: null,

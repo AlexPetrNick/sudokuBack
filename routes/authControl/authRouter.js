@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {getUserData, login, refresh, registration} from "../../common/Controller/authController.js";
+import {getRooms, getUserData, login, refresh, registration} from "../../common/Controller/authController.js";
 import {check} from 'express-validator'
 import {authMiddleware} from "../../middleware/authMiddleware.js";
 import cors from "cors";
@@ -13,5 +13,6 @@ routerAuth.post('/registration', [
 routerAuth.post('/login', login)
 routerAuth.post('/refresh', refresh)
 routerAuth.get('/userdata', authMiddleware, getUserData)
+routerAuth.get('/get-rooms', authMiddleware, getRooms)
 
 export default routerAuth

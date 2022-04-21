@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import {conf} from "../../config/config.js";
 import Token from "../../models/Token.js";
 import TalkingGroupModel from "../../models/TalkingGroupModel.js";
+import {getListCurrentFriend} from "../added/dbWorker.js";
 
 
 export const registration = async (req, res) => {
@@ -53,16 +54,18 @@ export const login = async (req, res) => {
         if (token) {
             await Token.deleteOne({user: user._id})
         }
-        const usersId = await TalkingGroupModel.find({usersId: user._id})
+        const dataDialog = await getListCurrentFriend(user._id)
+        const infoUser = await TalkingGroupModel.find({usersId: user._id})
             .then(data => {
                 const accessToken = generateAccessToken(user._id, user.roles)
                 const refreshToken = generateRefeshToken(user._id)
                 const usernameDb = user.username
                 const userIdDb = user._id
                 const nameRooms = data.map(talk => talk.name)
-                res.json({accessToken, refreshToken, username:usernameDb, id:userIdDb, nameRooms})
+                return {accessToken, refreshToken, username:usernameDb, id:userIdDb, nameRooms, dataDialog}
             })
 
+        res.json(infoUser)
     } catch (e) {
         console.log(e)
         res.status(400).json({message: 'Login error'})
@@ -107,3 +110,20 @@ export const getUserData = async (req, res) => {
         console.log(e)
     }
 }
+
+export const getRooms = async (req, res) => {
+    try {
+        const { userId, ...dataToken } = getDataAccessToken(req.headers.authorization.split(' ')[1])
+
+
+        const usersId = await TalkingGroupModel.find({usersId: userId})
+            .then(data => {
+                const nameRooms = data.map(talk => talk.name)
+                res.json({nameRooms})
+            })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+

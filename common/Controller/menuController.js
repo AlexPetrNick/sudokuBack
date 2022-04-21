@@ -2,55 +2,14 @@ import User from "../../models/User.js";
 import {getDataAccessToken} from "../added/workerToken.js";
 import TalkingGroupModel from "../../models/TalkingGroupModel.js";
 import UserTextMessageModel from "../../models/UserTextMessageModel.js";
-
+import {getListCurrentFriend} from "../added/dbWorker.js";
+import {log} from "debug";
 
 export const getListGroup = async (req, res) => {
     try {
         const {userId, ...dataToken} = getDataAccessToken(req.headers.authorization.split(' ')[1])
-        const usersId = await TalkingGroupModel.find({usersId: userId})
-            .select({'usersId': 1, '_id': 1})
-        const menuIdUser = usersId.map(us => {
-            console.log(us)
-            return {
-                friendId: us.usersId.filter(id => id.toString() !== userId)[0].toString(),
-                talkingId: us._id.toString()
-            }
-        })
-        const friendIds = menuIdUser.map(us => us.friendId)
-        const talkIds = menuIdUser.map(us => us.talkingId)
-        const dataMessagesProm = new Promise((res, rej) => {
-            res(UserTextMessageModel.find({talkingGroupId: {$in: talkIds}}))
-        })
-        const dataUsersProm = new Promise((res, rej) => {
-            res(User.find({_id: {$in: friendIds}}))
-        })
-        Promise.all([dataMessagesProm, dataUsersProm])
-            .then(data => {
-                const messData = data[0]
-                const userData = data[1]
-
-                const dataGroup = menuIdUser.map(data => {
-                    const friend = userData.filter(us => us._id.toString() === data.friendId)
-                    const filtFriend = friend.map(us => {
-                        return {
-                            username: us.username,
-                            email: us.email ? us.email : null,
-                            firstName: us.firstName ? us.firstName : null,
-                            lastName: us.lastName ? us.lastName : null,
-                        }
-                    })
-
-                    const talkRaw = messData.filter(ms => ms.talkingGroupId.toString() === data.talkingId)
-                    const talk = talkRaw.slice(-1)
-                    return {
-                        friend: filtFriend[0],
-                        talking: talk[0]
-                    }
-                })
-
-                res.json({dataGroup})
-            })
-
+        const data = await getListCurrentFriend(userId)
+        res.json({data})
     } catch (e) {
 
     }
@@ -71,11 +30,12 @@ export const getListUser = async (req, res) => {
 
         const result = listUserNotInTalking.map(u => {
             const username = u.username
+            const id = u._id
             const email = u.email ? u.email : null
             const firstName = u.firstName ? u.firstName : null
             const lastName = u.lastName ? u.lastName : null
             return {
-                username, email, firstName, lastName
+                username, email, firstName, lastName, id
             }
         })
         res.json({result})
