@@ -10,6 +10,7 @@ import TalkingGroupModel from "../../models/TalkingGroupModel.js";
 import {getListCurrentFriend} from "../added/dbWorker.js";
 
 
+
 export const registration = async (req, res) => {
     try {
         const errors = validationResult(req)

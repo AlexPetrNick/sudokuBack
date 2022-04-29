@@ -1,10 +1,9 @@
 import UserTextMessageModel from "../models/UserTextMessageModel.js";
-import User from "../models/User.js";
 import TalkingGroupModel from "../models/TalkingGroupModel.js";
 import metaModel from "../models/MetaModel.js";
 import userTextMessageModel from "../models/UserTextMessageModel.js";
 import {v4} from "uuid";
-import {log} from "debug";
+import SocketUser from "../models/SocketUser.js";
 
 
 export const messageHandler = (io, socket) => {
@@ -20,7 +19,6 @@ export const messageHandler = (io, socket) => {
 
     const newMessageEvent = async (getUserID, message, room, currId) => {
         const talkingGroup = await TalkingGroupModel.findOne({$and: [{usersId: currId}, {usersId: getUserID}]})
-
         if (talkingGroup) {
             return await metaModel.insertMany([
                 {
@@ -80,7 +78,7 @@ export const messageHandler = (io, socket) => {
                 ])
                 return {data, newMeta}
             }).then(async data => {
-                await userTextMessageModel.insertMany([
+                const messageNew = await userTextMessageModel.insertMany([
                     {
                         userId: currId,
                         metaId: data.newMeta[0]['_id'],
@@ -91,13 +89,39 @@ export const messageHandler = (io, socket) => {
                         createDate: new Date()
                     }
                 ])
+                return {data, messageNew}
             })
+                .then(dataIn => {
+                    const {data, messageNew} = dataIn
+                    const nameRoom = data.data[0].name
+                    socket.join(nameRoom)
+                    new Promise((res, rej) => {
+                        res(SocketUser.find({userId:getUserID}))
+                    }).then((dataSocket) => {
+                        if (dataSocket.length) {
+                            socket.to(dataSocket[0].socketId).emit('msg:newroom', nameRoom)
+                            socket.to(dataSocket[0].socketId).emit('user:newfriend', nameRoom)
+                        }
+                    })
+                    return {data, messageNew, nameRoom}
+                })
+                .then(dataIn => {
+                    const {data, messageNew, nameRoom} = dataIn
+                    console.log(socket.rooms)
+                    io.sockets.in(nameRoom).emit('msg:newcr', messageNew[0]._id, currId, messageNew[0].talkingGroupId, messageNew[0].text, getUserID)
+                })
         }
+    }
+
+    const joinRoomHnd = (room) => {
+        socket.join(room)
+        console.log(`User join to room ${room}`)
     }
 
     socket.on('msg:new', newMessageEvent)
     socket.on('msg:get', () => {
     })
     socket.on('msg:see', seeMessage)
+    socket.on('msg:joinroom', joinRoomHnd)
 
 }

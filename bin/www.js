@@ -5,6 +5,8 @@ import http from 'http'
 import mongoose from 'mongoose'
 import {Server} from 'socket.io'
 import {messageHandler} from "../socket/messageHandler.js";
+import User from "../models/User.js";
+import SocketUser from "../models/SocketUser.js";
 
 
 let normalizePort = (val) => {
@@ -65,6 +67,22 @@ const startApp = async () => {
 
         const handleConnect = (socket) => {
             console.log('A user connected')
+            new Promise((res, rej) => {
+                res(SocketUser.find({userId: socket.handshake.query.idUser}))
+            })
+                .then(data => {
+                    if (data.length) {
+                        new Promise((res, rej) => {
+                            res(SocketUser.deleteMany({userId: socket.handshake.query.idUser}))
+                        })
+                    }
+                })
+                .then(() => {
+                    SocketUser.insertMany({
+                        userId: socket.handshake.query.idUser,
+                        socketId: socket.id
+                    })
+                })
 
             messageHandler(io, socket)
 
@@ -75,6 +93,9 @@ const startApp = async () => {
 
             socket.on('disconnect', function () {
                 console.log('user disconnected');
+                    new Promise((res, rej) => {
+                        res(SocketUser.deleteMany({userId: socket.handshake.query.idUser}))
+                    })
             });
         }
 

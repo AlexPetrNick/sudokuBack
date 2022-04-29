@@ -4,6 +4,7 @@ import TalkingGroupModel from "../../models/TalkingGroupModel.js";
 import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 import {getListCurrentFriend} from "../added/dbWorker.js";
 import {log} from "debug";
+import MetaModel from "../../models/MetaModel.js";
 
 export const getListGroup = async (req, res) => {
     try {
@@ -49,5 +50,17 @@ export const getListMenuItem = async (req, res) => {
 
     } catch (e) {
 
+    }
+}
+
+
+export const clearDataUsers = async (req, res) => {
+    try {
+        const clearMeta = await MetaModel.deleteMany({deleteUserId: null})
+        const clearMessages = await UserTextMessageModel.deleteMany({cntLike: 0})
+        const clearTalking = await TalkingGroupModel.deleteMany({individual: true})
+        res.json({clearMeta, clearMessages, clearTalking})
+    } catch (e) {
+        console.log(e)
     }
 }

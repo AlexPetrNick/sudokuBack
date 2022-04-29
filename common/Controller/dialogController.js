@@ -11,7 +11,6 @@ export const getDialogInfo = async (req, res) => {
     try {
         const query = req.query
         const {userId, ...dataToken} = getDataAccessToken(req.headers.authorization.split(' ')[1])
-
         if (Object.keys(query) === undefined) {
             res.json({message: "Нет дополнительных параметров 'query'"})
         }

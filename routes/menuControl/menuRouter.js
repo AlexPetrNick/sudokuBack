@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {getUserData, login, refresh} from "../../common/Controller/authController.js";
-import {getListGroup, getListMenuItem, getListUser} from "../../common/Controller/menuController.js";
+import {clearDataUsers, getListGroup, getListMenuItem, getListUser} from "../../common/Controller/menuController.js";
 
 
 // routerAuth.post('/registration', [
@@ -13,5 +13,6 @@ const menuRouter = new Router()
 menuRouter.get('/list_group', getListGroup)
 menuRouter.get('/list_user', getListUser)
 menuRouter.get('/list_menu_item', getListMenuItem)
+menuRouter.get('/clear_data_users', clearDataUsers)
 
 export default menuRouter
