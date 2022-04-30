@@ -1,7 +1,7 @@
 import UserTextMessageModel from "../models/UserTextMessageModel.js";
+import userTextMessageModel from "../models/UserTextMessageModel.js";
 import TalkingGroupModel from "../models/TalkingGroupModel.js";
 import metaModel from "../models/MetaModel.js";
-import userTextMessageModel from "../models/UserTextMessageModel.js";
 import {v4} from "uuid";
 import SocketUser from "../models/SocketUser.js";
 
@@ -113,6 +113,14 @@ export const messageHandler = (io, socket) => {
         }
     }
 
+    const readAllMsg = async (idFriend) => {
+        const userId = socket.handshake.query.idUser
+        const talking = await TalkingGroupModel.findOne({$and:[{usersId:idFriend},{usersId: userId}]})
+        await UserTextMessageModel.updateMany({$and: [{talkingGroupId: talking._id}, {whoRead: {$ne: userId}}]}, {
+            $push: { whoRead: userId }
+        })
+    }
+
     const joinRoomHnd = (room) => {
         socket.join(room)
         console.log(`User join to room ${room}`)
@@ -123,5 +131,6 @@ export const messageHandler = (io, socket) => {
     })
     socket.on('msg:see', seeMessage)
     socket.on('msg:joinroom', joinRoomHnd)
+    socket.on('msg:readallmsg', readAllMsg)
 
 }

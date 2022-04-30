@@ -29,7 +29,6 @@ export const getListCurrentFriend = async (userId) => {
             .then(data => {
                 const messData = data[0]
                 const userData = data[1]
-
                 return menuIdUser.map(data => {
                     const friend = userData.filter(us => us._id.toString() === data.friendId)
                     const filtFriend = friend.map(us => {
@@ -42,10 +41,12 @@ export const getListCurrentFriend = async (userId) => {
                         }
                     })
                     const talkRaw = messData.filter(ms => ms.talkingGroupId.toString() === data.talkingId)
+                    let cntUnreadMsg = talkRaw.filter(ms => !ms.whoRead.includes(userId)).length
                     const talk = talkRaw.slice(-1)
                     return {
                         friend: filtFriend[0],
-                        talking: talk[0]
+                        talking: talk[0],
+                        cntUnreadMsg
                     }
                 })
             }).then(data => {

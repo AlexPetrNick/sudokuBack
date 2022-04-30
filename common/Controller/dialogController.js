@@ -5,6 +5,7 @@ import metaModel from "../../models/MetaModel.js";
 import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 import userTextMessageModel from "../../models/UserTextMessageModel.js";
 import {v4} from "uuid";
+import mongoose from "mongoose";
 
 
 export const getDialogInfo = async (req, res) => {
@@ -20,6 +21,9 @@ export const getDialogInfo = async (req, res) => {
 
             const group = await TalkingGroupModel.find({$and: [{usersId: userId}, {usersId: userQuery}]})
             if (group.length) {
+                await UserTextMessageModel.updateMany({$and: [{talkingGroupId: group[0]._id}, {whoRead: {$ne: userId}}]}, {
+                    $push: { whoRead: userId }
+                })
                 const messages = await UserTextMessageModel.find({talkingGroupId: group[0]._id})
                 res.json({userQuery, group, messages})
             }
