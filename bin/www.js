@@ -60,7 +60,10 @@ const io = new Server(server, {
 
 const startApp = async () => {
     try {
-        await mongoose.connect('mongodb://localhost:27017/mongo')
+        const dbconnect = await mongoose.connect('mongodb://localhost:27017/mongo')
+            .catch(e => {
+                console.log(e)
+            })
         server.listen(3000);
         server.on('error', onError);
         server.on('listening', onListening);

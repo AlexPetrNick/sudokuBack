@@ -1,5 +1,6 @@
 import express from 'express'
-import {changeUserHandler} from "../common/Controller/userController.js";
+import {changeUserHandler, loadImage} from "../common/Controller/userController.js";
+import {mainMultier} from "../middleware/multerUpload.js";
 
 
 const router = new express.Router();
@@ -10,5 +11,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.put('/change_user', changeUserHandler)
+router.post('/upload_image', mainMultier.single('avatar'), loadImage)
 
 export default router;

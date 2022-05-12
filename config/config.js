@@ -9,5 +9,6 @@ export const conf = {
             typeToken: 'refresh',
             live: '24h'
         }
-    }
+    },
+    pathImagesUpload: './images/upload/'
 }
