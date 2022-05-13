@@ -10,5 +10,9 @@ export const conf = {
             live: '24h'
         }
     },
-    pathImagesUpload: './images/upload/'
+    pathImagesUpload: './images/upload/',
+    nameAddOriginImage: 'origin',
+    addressServer: 'http://localhost:3000/',
+    staticImages: 'http://localhost:3000/images/',
+    uploadImages: 'http://localhost:3000/images/upload/'
 }

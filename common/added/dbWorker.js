@@ -1,6 +1,8 @@
 import TalkingGroupModel from "../../models/TalkingGroupModel.js";
 import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 import User from "../../models/User.js";
+import {conf} from "../../config/config.js";
+import fs from "fs";
 
 
 export const getListCurrentFriend = async (userId) => {
@@ -32,12 +34,26 @@ export const getListCurrentFriend = async (userId) => {
                 return menuIdUser.map(data => {
                     const friend = userData.filter(us => us._id.toString() === data.friendId)
                     const filtFriend = friend.map(us => {
+                        const uploadPath = conf.pathImagesUpload
+                        const folder = fs.readdirSync(uploadPath)
+                        let linkImage = null
+                        console.log(folder)
+                        console.log(us._id)
+                        if (folder.includes(us._id.toString())) {
+                            const files = fs.readdirSync(`${uploadPath}${us._id}`)
+                            console.log(files)
+                            if (files.includes('cut.jpg')) {
+                                linkImage = `${conf.staticImages}${us._id}/cut.jpg`
+                            }
+                        }
+                        // const linkImage = `${conf.staticImages}${us._id}/cut.jpg`
                         return {
                             id: us._id ? us._id : null,
                             username: us.username,
                             email: us.email ? us.email : null,
                             firstName: us.firstName ? us.firstName : null,
                             lastName: us.lastName ? us.lastName : null,
+                            face: linkImage
                         }
                     })
                     const talkRaw = messData.filter(ms => ms.talkingGroupId.toString() === data.talkingId)

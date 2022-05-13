@@ -60,10 +60,14 @@ export const login = async (req, res) => {
             .then(data => {
                 const accessToken = generateAccessToken(user._id, user.roles)
                 const refreshToken = generateRefeshToken(user._id)
-                const usernameDb = user.username
-                const userIdDb = user._id
+                const {password, ...infoUser} = user
+                const {password:second, _id, ...correctInfo} = infoUser['_doc']
                 const nameRooms = data.map(talk => talk.name)
-                return {accessToken, refreshToken, username:usernameDb, id:userIdDb, nameRooms, dataDialog}
+                const images = {
+                    origin: `${conf.staticImages}${user._id}/origin.jpg`,
+                    cut: `${conf.staticImages}${user._id}/cut.jpg`
+                }
+                return {accessToken, refreshToken, infoUser:correctInfo, id:_id, images, nameRooms, dataDialog}
             })
 
         res.json(infoUser)
