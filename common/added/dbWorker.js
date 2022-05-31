@@ -8,19 +8,21 @@ import fs from "fs";
 export const getListCurrentFriend = async (userId) => {
     return new Promise((resolve, reject) => {
         resolve(TalkingGroupModel.find({usersId: userId})
-            .select({'usersId': 1, '_id': 1}))
+            .select({'usersId': 1, '_id': 1, 'name': 1}))
     }).then((res) => {
         const menuIdUser = res.map(us => {
             return {
                 friendId: us.usersId.filter(id => id.toString() !== userId.toString())[0].toString(),
-                talkingId: us._id.toString()
+                talkingId: us._id.toString(),
+                name: us.name
             }
         })
         const friendIds = menuIdUser.map(us => us.friendId)
         const talkIds = menuIdUser.map(us => us.talkingId)
-        return {friendIds, talkIds, menuIdUser}
+        const names = menuIdUser.map(us => us.name)
+        return {friendIds, talkIds, menuIdUser, names}
     }).then((res) => {
-        const {friendIds, talkIds, menuIdUser} = res
+        const {friendIds, talkIds, menuIdUser, names} = res
         const resultMessage = new Promise((res, rej) => {
             res(UserTextMessageModel.find({talkingGroupId: {$in: talkIds}}))
         })
@@ -31,17 +33,14 @@ export const getListCurrentFriend = async (userId) => {
             .then(data => {
                 const messData = data[0]
                 const userData = data[1]
-                return menuIdUser.map(data => {
+                return menuIdUser.map((data, index) => {
                     const friend = userData.filter(us => us._id.toString() === data.friendId)
                     const filtFriend = friend.map(us => {
                         const uploadPath = conf.pathImagesUpload
                         const folder = fs.readdirSync(uploadPath)
                         let linkImage = null
-                        console.log(folder)
-                        console.log(us._id)
                         if (folder.includes(us._id.toString())) {
                             const files = fs.readdirSync(`${uploadPath}${us._id}`)
-                            console.log(files)
                             if (files.includes('cut.jpg')) {
                                 linkImage = `${conf.staticImages}${us._id}/cut.jpg`
                             }
@@ -59,15 +58,16 @@ export const getListCurrentFriend = async (userId) => {
                     const talkRaw = messData.filter(ms => ms.talkingGroupId.toString() === data.talkingId)
                     let cntUnreadMsg = talkRaw.filter(ms => !ms.whoRead.includes(userId)).length
                     const talk = talkRaw.slice(-1)
+                    const name = names[index]
                     return {
                         friend: filtFriend[0],
                         talking: talk[0],
-                        cntUnreadMsg
+                        cntUnreadMsg,
+                        name
                     }
                 })
-            }).then(data => {
-            return data
-        })
+            })
+            .then(data => data)
     })
 }
 

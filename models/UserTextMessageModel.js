@@ -10,6 +10,7 @@ const UserTextMessageModel = new Schema({
     cntLike: { type: Number, default: 0 },
     cntWatch: { type: Number, default: 0 },
     whoRead: {type: [Schema.Types.ObjectId], ref: 'User'},
+    forwarded: {type: String, default: '' },
     createDate: { type: Date },
 })
 

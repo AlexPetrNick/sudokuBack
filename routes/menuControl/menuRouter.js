@@ -1,6 +1,10 @@
 import {Router} from "express";
-import {getUserData, login, refresh} from "../../common/Controller/authController.js";
-import {clearDataUsers, getListGroup, getListMenuItem, getListUser} from "../../common/Controller/menuController.js";
+import {
+    clearDataUsers,
+    getListGroup,
+    getListMenuItem,
+    getListUser
+} from "../../common/Controller/menuController.js";
 
 
 // routerAuth.post('/registration', [

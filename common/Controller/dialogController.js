@@ -6,6 +6,7 @@ import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 import userTextMessageModel from "../../models/UserTextMessageModel.js";
 import {v4} from "uuid";
 import mongoose from "mongoose";
+import {log} from "debug";
 
 
 export const getDialogInfo = async (req, res) => {
@@ -25,6 +26,7 @@ export const getDialogInfo = async (req, res) => {
                     $push: { whoRead: userId }
                 })
                 const messages = await UserTextMessageModel.find({talkingGroupId: group[0]._id})
+                console.log(messages)
                 res.json({userQuery, group, messages})
             }
             res.json({group})
@@ -118,3 +120,38 @@ export const sendMessage = async (req, res) => {
 }
 
 
+export const editMessage = async (req, res) => {
+    try {
+        const {idMessage, editMessage} = req.body
+        if (!idMessage) res.status(400).send(`Отсутствует idMessage`)
+        if (typeof idMessage !== 'string') res.status(400).send(`Неверный тип idMessage`)
+        if (!mongoose.Types.ObjectId.isValid(idMessage)) res.status(400).send(`Неверный формат idMessage`)
+        if (typeof editMessage !== 'string') res.status(400).send(`Неверный тип editMessage`)
+        const message = await UserTextMessageModel.find({_id: idMessage})
+        if (!message[0]) res.status(400).send(`Не найдено сообщения`)
+        await UserTextMessageModel.updateOne({_id: idMessage},
+            { $set: { prevText: editMessage }})
+        const messageRet = await UserTextMessageModel.find({_id: idMessage})
+        const id = messageRet[0]._id
+        const prevText = messageRet[0].prevText
+        res.json({id, prevText})
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+
+export const deleteMessage = async (req, res) => {
+    try {
+        const {idMessage} = req.body
+        if (!idMessage) res.status(400).send(`Отсутствует idMessage`)
+        if (typeof idMessage !== 'string') res.status(400).send(`Неверный тип idMessage`)
+        if (!mongoose.Types.ObjectId.isValid(idMessage)) res.status(400).send(`Неверный формат idMessage`)
+        const message = await UserTextMessageModel.find({_id: idMessage})
+        if (!message[0]) res.status(400).send(`Не найдено сообщения`)
+        await UserTextMessageModel.deleteOne({_id:idMessage})
+        res.json({deletedMsg:idMessage})
+    } catch (e) {
+        console.log(e)
+    }
+}
