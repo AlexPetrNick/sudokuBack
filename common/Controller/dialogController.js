@@ -6,7 +6,8 @@ import UserTextMessageModel from "../../models/UserTextMessageModel.js";
 import userTextMessageModel from "../../models/UserTextMessageModel.js";
 import {v4} from "uuid";
 import mongoose from "mongoose";
-import {log} from "debug";
+import fs from "fs";
+import {conf} from "../../config/config.js";
 
 
 export const getDialogInfo = async (req, res) => {
@@ -18,16 +19,24 @@ export const getDialogInfo = async (req, res) => {
         }
         const userFromQuery = query['username']
         if (userFromQuery.length) {
+            let linkImage = null
+            const pathUpload = conf.pathImagesUpload
+            const folder = fs.readdirSync(pathUpload)
             const userQuery = await User.findOne({username: userFromQuery}).select(['_id', 'username', 'email', 'firstName', 'lastName'])
-
+            if (folder.includes(userQuery._id.toString())) {
+                const files = fs.readdirSync(`${pathUpload}${userQuery._id}`)
+                if (files.includes('cut.jpg')) {
+                    linkImage = `${conf.staticImages}${userQuery._id}/cut.jpg`
+                }
+            }
             const group = await TalkingGroupModel.find({$and: [{usersId: userId}, {usersId: userQuery}]})
             if (group.length) {
                 await UserTextMessageModel.updateMany({$and: [{talkingGroupId: group[0]._id}, {whoRead: {$ne: userId}}]}, {
                     $push: { whoRead: userId }
                 })
                 const messages = await UserTextMessageModel.find({talkingGroupId: group[0]._id})
-                console.log(messages)
-                res.json({userQuery, group, messages})
+                userQuery['asdfas'] = 'asdfasd'
+                res.json({userQuery, group, messages, faceFriend: linkImage})
             }
             res.json({group})
         }
@@ -144,12 +153,14 @@ export const editMessage = async (req, res) => {
 export const deleteMessage = async (req, res) => {
     try {
         const {idMessage} = req.body
-        if (!idMessage) res.status(400).send(`Отсутствует idMessage`)
-        if (typeof idMessage !== 'string') res.status(400).send(`Неверный тип idMessage`)
-        if (!mongoose.Types.ObjectId.isValid(idMessage)) res.status(400).send(`Неверный формат idMessage`)
-        const message = await UserTextMessageModel.find({_id: idMessage})
-        if (!message[0]) res.status(400).send(`Не найдено сообщения`)
-        await UserTextMessageModel.deleteOne({_id:idMessage})
+        idMessage.map(async msgId => {
+            if (!msgId) res.status(400).send(`Отсутствует idMessage`)
+            if (typeof msgId !== 'string') res.status(400).send(`Неверный тип idMessage`)
+            if (!mongoose.Types.ObjectId.isValid(msgId)) res.status(400).send(`Неверный формат idMessage`)
+            const message = await UserTextMessageModel.find({_id: msgId})
+            if (!message[0]) res.status(400).send(`Не найдено сообщения`)
+            await UserTextMessageModel.deleteOne({_id:msgId})
+        })
         res.json({deletedMsg:idMessage})
     } catch (e) {
         console.log(e)

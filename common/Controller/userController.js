@@ -11,7 +11,6 @@ export const changeUserHandler = async (req, res) => {
         const staticField = ['username', '_id']
         const findUser = {"_id": userId}
         const bodyReq = req.body
-        console.log(bodyReq)
         let updateField = {}
         await Object.keys(bodyReq).forEach((elem) => {
             if (!staticField.includes(elem)) {
@@ -20,7 +19,6 @@ export const changeUserHandler = async (req, res) => {
         })
         await User.findOneAndUpdate(findUser, updateField)
         const userRet = await User.find(findUser).select(["_id","username","firstName","lastName","email"])
-        console.log(userRet[0])
         res.json(userRet[0])
 
     } catch (e) {

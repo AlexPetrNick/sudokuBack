@@ -10,7 +10,6 @@ import User from "../models/User.js";
 export const messageHandler = (io, socket) => {
 
     const seeMessage = async (arg, currId) => {
-        console.log(currId)
         await UserTextMessageModel.updateOne(
             {_id: arg},
             {$push: {whoRead: currId}})
@@ -30,7 +29,6 @@ export const messageHandler = (io, socket) => {
                 }
             ])
                 .then(async (data) => {
-                    console.log(currId)
                     return await userTextMessageModel.insertMany([
                         {
                             userId: currId,
@@ -57,8 +55,6 @@ export const messageHandler = (io, socket) => {
                     deleteDate: null,
                 }
             ]).then(async data => {
-                console.log(currId)
-                console.log(getUserID)
                 return await TalkingGroupModel.insertMany([
                     {
                         metaId: data[0]['_id'],
@@ -108,7 +104,6 @@ export const messageHandler = (io, socket) => {
                 })
                 .then(dataIn => {
                     const {data, messageNew, nameRoom} = dataIn
-                    console.log(socket.rooms)
                     io.sockets.in(nameRoom).emit('msg:newcr', messageNew[0]._id, currId, messageNew[0].talkingGroupId, messageNew[0].text, getUserID)
                 })
         }
@@ -143,6 +138,40 @@ export const messageHandler = (io, socket) => {
             })
     }
 
+    const newMessageForwardArrayEvent = async (getUserID, messages, room, currId, forwarded) => {
+        const talkingGroup = await TalkingGroupModel.findOne({$and: [{usersId: currId}, {usersId: getUserID}]})
+        console.log(messages)
+        messages.map(async (msg, index) => {
+            await metaModel.insertMany([
+                {
+                    deleteUserId: null,
+                    updateUserId: null,
+                    updateDate: null,
+                    deleteDate: null,
+                }
+            ])
+                .then(async (data) => {
+                    const currentUserMsg = msg.startsWith(currId)
+                    return await userTextMessageModel.insertMany([
+                        {
+                            userId: currId,
+                            metaId: data[0]['_id'],
+                            talkingGroupId: talkingGroup._id,
+                            text: currentUserMsg ? msg.substring(currId.length) : msg,
+                            prevText: null,
+                            whoRead: [currId],
+                            forwarded: currentUserMsg ? null : forwarded[index],
+                            createDate: new Date()
+                        }
+                    ])
+                })
+                .then(data => {
+                    console.log('create')
+                    io.sockets.in(room).emit('msg:newcr', data[0]._id, currId, data[0].talkingGroupId, data[0].text, getUserID, forwarded)
+                })
+        })
+    }
+
     const readAllMsg = async (idFriend) => {
         const userId = socket.handshake.query.idUser
         const talking = await TalkingGroupModel.findOne({$and: [{usersId: idFriend}, {usersId: userId}]})
@@ -158,8 +187,8 @@ export const messageHandler = (io, socket) => {
 
     socket.on('msg:new', newMessageEvent)
     socket.on('msg:new_forward', newMessageForwardEvent)
-    socket.on('msg:get', () => {
-    })
+    socket.on('msg:new_forward_many', newMessageForwardArrayEvent)
+    socket.on('msg:get', () => {})
     socket.on('msg:see', seeMessage)
     socket.on('msg:joinroom', joinRoomHnd)
     socket.on('msg:readallmsg', readAllMsg)
